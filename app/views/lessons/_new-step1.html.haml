@@ -11,13 +11,13 @@
               Name of Lesson *
               %small 50 chars max
             .field-wrapper
-              = text_field(:lesson, :name, class:'input--large input--higher', value: @lesson_obj.name, placeholder: 'Name your lesson')
+              = text_field(:lesson, :name, class:'input--large input--higher', class: 'form-field', value: @lesson_obj.name, placeholder: 'Name your lesson')
           .field-group
             %label
               Topline description *
               %small Describe it in a sentence
             .field-wrapper
-              = text_field(:lesson, :topline, value: @lesson_obj.topline, placeholder: 'How would you describe it in one sentence?')
+              = text_field(:lesson, :topline, value: @lesson_obj.topline, class: 'form-field', placeholder: 'How would you describe it in one sentence?')
         %fieldset
           %legend
             %h3 Authors
@@ -77,9 +77,9 @@
               .clone-container
                 - if @lesson_obj.learning_objectives.present?
                   - @lesson_obj.learning_objectives.each do |objective|
-                    = text_field(:lesson, :learning_objectives, multiple: true, data: { control:'key'}, value: objective)
+                    = text_field(:lesson, :learning_objectives, multiple: true, class: 'form-field', data: { control:'key'}, value: objective)
                 - else
-                  = text_field(:lesson, :learning_objectives, multiple: true, data: { control:'key'}, placeholder: '+ Add new objective' )
+                  = text_field(:lesson, :learning_objectives, multiple: true, class: 'form-field', data: { control:'key'}, placeholder: '+ Add new objective' )
               %small Press ↵ Return to add
         %fieldset
           %legend
@@ -96,7 +96,7 @@
                   • The types of activities students will do.
                 %p You can format using markdown
             .field-wrapper
-              = text_area(:lesson, :description, value: @lesson_obj.description, placeholder: 'Which is the description of the lesson?')
+              = text_area(:lesson, :description, value: @lesson_obj.description, class: 'form-field', placeholder: 'Which is the description of the lesson?')
           .field-group
             %label
               Assessment Criteria *
@@ -109,7 +109,7 @@
                   • The types of activities students will do.
                 %p You can format using markdown
             .field-wrapper
-              = text_area(:lesson, :assessment_criteria, value: @lesson_obj.assessment_criteria, placeholder: 'Which is the assessment criteria?')
+              = text_area(:lesson, :assessment_criteria, class: 'form-field', value: @lesson_obj.assessment_criteria, placeholder: 'Which is the assessment criteria?')
             .field-wrapper
               .field-group.field-group--support
                 %label.label--small
@@ -133,15 +133,15 @@
               .clone-container
                 - if @lesson_obj.further_readings.present?
                   - @lesson_obj.further_readings.each do |further|
-                    = text_field(:lesson, :further_readings, multiple: true, data: { control:'key'}, value: further )
+                    = text_field(:lesson, :further_readings, class: 'form-field', multiple: true, data: { control:'key'}, value: further )
                 - else
-                  = text_field(:lesson, :further_readings, multiple: true, data: { control:'key'}, placeholder: '+ Type URL and press enter ')
+                  = text_field(:lesson, :further_readings, class: 'form-field', multiple: true, data: { control:'key'}, placeholder: '+ Type URL and press enter ')
               %small Press ↵ Return to add
 
       %footer
         .wrapped
           %p Next up...
-          = submit_tag('Add some Standards', class: 'button button--call')
+          = submit_tag('Add some Standards', class: 'button button--call', id: 'lesson_form_1_submit')
 
 
 

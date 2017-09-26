@@ -6,7 +6,6 @@ window.Scopes.lesson = {
     var endpoint_for_files = '/lessons/'+lesson+'/'+step+'/file/supporting_'+type;
     $('.lesson-step[data-id="'+step+'"]').find('.field-group--supporting-'+type+' .image-uploader-wrapper').attr('data-endpoint',endpoint_for_files);
   },
-
   getUploadedFiles: function(){ // Generic function to print files
 
       $('.image-uploader-wrapper').each(function(){
@@ -54,7 +53,24 @@ window.Scopes.lesson = {
         }
       });
     }
-  }  
+  },
+  checkFormValidation: function ($step) {
+      var isValid = true;
+
+      $('#' + $step + ' .form-field').each(function () {
+          var $fld = $(this);
+          var $val = $fld.val();
+          if($val && $fld.hasClass('invalid-field')){
+              isValid = true;
+              $fld.removeClass('invalid-field');
+          }
+          if(!$val){
+              isValid = false;
+              $fld.addClass('invalid-field');
+          }
+      });
+      return isValid;
+  }
 }
 
 var fileUploadErrors = {
@@ -368,4 +384,21 @@ $(document).on('turbolinks:load', function() {
       }
     }).disableSelection();
 
+});
+
+$( document ).ready(function() {
+    var lesson = window.Scopes.lesson;
+    $('#lesson_form_1').submit(function (event) {
+        if(!lesson.checkFormValidation('lesson_form_1')){
+            setTimeout(function () {
+                document.getElementById('lesson_form_1_submit').disabled = false;
+            }, 100);
+            event.preventDefault();
+        }
+    });
+    $('.form-field').on('change', function (event) {
+        if($(this).val() && $(this).hasClass('invalid-field')){
+            $(this).removeClass('invalid-field');
+        }
+    });
 });
