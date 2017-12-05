@@ -8,6 +8,10 @@ class ApplicationController < ActionController::Base
   protect_from_forgery prepend: true, with: :exception
   before_action :configure_permitted_parameters, if: :devise_controller?
 
+  include Pundit
+  rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
+
+
   protected
 
     def configure_permitted_parameters
@@ -22,5 +26,12 @@ class ApplicationController < ActionController::Base
 		def set_lesson
       @lesson_obj = Lesson.find_by_id(params[:lesson_id])
     end
+
+  private
+
+  def user_not_authorized
+    flash[:alert] = "Access denied."
+    redirect_to (request.referrer || root_path)
+  end
 
 end

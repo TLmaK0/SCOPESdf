@@ -24,47 +24,60 @@ class LessonService
       updateDifficultyLevel!
       updateSkills!
       updateContext!
-      updateOtherInterests!
       updateCollectionTag!
+      updateTags!
       @lesson
     end
     def prepParams(usr, given)
-      if given
-        other_users = given.delete(:other_users_emails)
-        associated_places = given.delete(:associated_places_ids)
-        standards = given.delete(:standards)
-        teaching_range = given.delete(:grade_range)
-        subjects = given.delete(:subjects)
-        difficulty_level = given.delete(:difficulty_level)
-        skills = given.delete(:skills)
-        context = given.delete(:context)
-        other_interests = given.delete(:tags)
-        collection = given.delete(:collection_tag)
-      end
+      # if given
+      #   other_users = given.delete(:other_users_emails)
+      #   associated_places = given.delete(:associated_places_ids)
+      #   standards = given.delete(:standards)
+      #   teaching_range = given.delete(:grade_range)
+      #   subjects = given.delete(:subjects)
+      #   mastery_level = given.delete(:mastery_level)
+      #   skills = given.delete(:skills)
+      #   context = given.delete(:contexts)
+      #   other_interests = given.delete(:tags)
+      #   collection = given.delete(:collection_tag)
+      # end
 
 
       params = {
           lesson: given,
-          places: associated_places,
-          standards: standards,
-          difficulty_level: difficulty_level,
-          skills: skills
+          # places: associated_places,
+          # standards: standards,
+          # mastery_level: mastery_level,
+          # skills: skills
       }
 
       # puts skills.inspect
 
       @calling_user = usr
-      @lesson_params = params[:lesson]
       @other_authors = given.delete(:other_users_emails)
       @places = given.delete(:associated_places_ids)
       @standards = given.delete(:standards)
       @teaching_range = given.delete(:grade_range)
       @subjects = given.delete(:subjects)
-      @difficulty_level = given.delete(:difficulty_level)
+
+      @mastery_level = {student: given.delete(:mastery_level_students), educator: given.delete(:mastery_level_teachers)} if given[:mastery_level_students].present? && given[:mastery_level_teachers].present?
+
       @skills = given.delete(:skills)
-      @context = given.delete(:context)
-      @other_interests = given.delete(:tags)
+      @context = given.delete(:contexts)
       @collection = given.delete(:collection_tag)
+      @generic_tags = given.delete(:tags)
+
+      params = {
+          lesson: given,
+          # places: associated_places,
+          # standards: standards,
+          # mastery_level: mastery_level,
+          # skills: skills
+      }
+      @lesson_params = params[:lesson]
+
+
+
     end
 
 
@@ -167,15 +180,15 @@ class LessonService
     def updateSubjects!
       return unless @subjects.present?
       @lesson.removeSubjects # sanitize
-      @lesson.setSubjects(@subjects)
+      @lesson.setSubjects_id(@subjects)
       @lesson.save! 
       @lesson.reload
     end
 
     def updateDifficultyLevel!
-      return unless @difficulty_level.present?
-      @lesson.removeDifficultyLevels # sanitize
-      @lesson.setDifficultyLevel(@difficulty_level)
+      return unless @mastery_level.present?
+      @lesson.removeMasteryLevels # sanitize
+      @lesson.setMasteryLevel(@mastery_level)
       @lesson.save!
       @lesson.reload
     end
@@ -191,15 +204,7 @@ class LessonService
     def updateContext!
       return unless @context.present?
       @lesson.removeContext # sanitize
-      @lesson.setContext(@context)
-      @lesson.save!
-      @lesson.reload
-    end
-
-    def updateOtherInterests!
-      return unless @other_interests.present?
-      @lesson.removeOtherInterest # sanitize
-      @lesson.setOtherInterests(@other_interests)
+      @lesson.setContext_id(@context)
       @lesson.save!
       @lesson.reload
     end
@@ -208,6 +213,15 @@ class LessonService
       return unless @collection.present?
       @lesson.removeCollectionTags # sanitize
       @lesson.setCollectionTag(@collection)
+      @lesson.save!
+      @lesson.reload
+    end
+
+    def updateTags!
+      return unless @generic_tags.present?
+      @lesson.removeTags # sanitize
+      @generic_tags = @generic_tags.reject { |x| x.empty? }
+      @lesson.setTags(@generic_tags)
       @lesson.save!
       @lesson.reload
     end

@@ -26,7 +26,7 @@ class LessonsController < ApplicationController
     @filter_subjects = [] # TODO: turn subject param into array to check against
 
     # set difficulties
-    @difficulty_helper = DifficultyLevel.form_helper
+    @difficulty_helper = MasteryLevel.form_helper
 
     # Pagination stub, just so i can style the output - DH
     @paginatable_array = Kaminari.paginate_array([*1..280]).page(params[:page]).per(12)
@@ -67,19 +67,32 @@ class LessonsController < ApplicationController
 
     # Assign the @form_step var, casting as integer instead of a string
     @form_step = params[:form_step].present? ? params[:form_step].to_i : 1
-
-    # Fetch the lesson by the provided id
     @lesson_obj = Lesson.find(params[:id])
 
+
     #pundit --
-    #authorize @lesson_obj, :update? TODO: this keeps erroring for me - DH
+    authorize @lesson_obj, :update? # TODO: this keeps erroring for me - DH
 
     # If the form step is 2, i.e. standards, we redirect to create the first standard
     redirect_to new_lesson_standard_path(lesson_id: @lesson_obj.id, form_step: @form_step) if @form_step == 2
 
     # If the form step is 4, i.e. steps, we redirect to edit the first step created
     # when the lesson itself was created
-    redirect_to edit_lesson_step_path(lesson_id: @lesson_obj.id, id: @lesson_obj.steps.first.id, form_step: @form_step) if @form_step == 4
+    if @form_step == 4
+      @steps = @lesson_obj.steps.order(:created_at).to_a
+      unless @steps.present?
+        @lesson_obj.steps << Step.new(summary: "")
+        @lesson_obj.save!
+        puts @lesson_obj.steps
+        @steps = @lesson_obj.steps.to_a
+      end
+      @steps_array = @steps.map{|s| s.id}
+
+      redirect_to edit_lesson_step_path(lesson_id: @lesson_obj.id, id: @lesson_obj.steps.first.id, form_step: @form_step)
+    end
+
+
+
 
     if params[:lesson].present?
       @lesson_obj = LessonService.find_or_create_and_update(params[:id], lesson_params, @current_user)
@@ -91,26 +104,12 @@ class LessonsController < ApplicationController
     LessonService.add_file_by_type_to_id(@lesson_obj.id, files_hash) # should not be user first
     @lesson_obj.reload
 
-
-    if @form_step == 4
-      @steps = @lesson_obj.steps.order(:created_at).to_a
-      unless @steps.present?
-        @lesson_obj.steps << Step.new(summary: "")
-        @lesson_obj.save!
-        puts @lesson_obj.steps
-        @steps = @lesson_obj.steps.to_a
-      end
-      @steps_array = @steps.map{|s| s.id}
-    end
-
-
     # elsif params[:id].present? && params[:step].present? # making a step
     #   Step.find_or_create_and_update(nil, params[:id], step_param, User.first).set_files(params)
 
-
     #@collections = CollectionTag.all.to_a.map{|x| x.name.titleize}
     @collections = CollectionTag.all
-    @difficulty_helper = DifficultyLevel.form_helper
+    @difficulty_helper = MasteryLevel.form_helper
     @teaching_range_helper = TeachingRange.inputRange
 
   end
@@ -120,8 +119,18 @@ class LessonsController < ApplicationController
 
     #raise params.to_yaml
 
+    #print params.inspect
+
+    puts params.inspect
+    puts "lesson_params hereeeeee"
+    puts lesson_params.inspect
+
+    puts lesson_params[:tags]
+
     # Update the lesson
     @lesson_obj = LessonService.find_or_create_and_update(params[:id], lesson_params, User.first)
+    # @lesson_obj.setTags(lesson_params[:tags])
+    # puts @lesson_obj.tags
 
     # Redirect to the next step
     redirect_to edit_lesson_path(id: @lesson_obj.id, form_step: params[:form_step])
@@ -174,8 +183,6 @@ class LessonsController < ApplicationController
     render :json => @lesson_obj.send(attribute)
 
   end
-
-
 
 
 
@@ -425,7 +432,7 @@ class LessonsController < ApplicationController
   private
 
     def lesson_params
-      params.require(:lesson).permit(:name, :topline, :summary, :teacher_notes, :assessment_criteria, :state, :collection_tag, other_users_emails: [], learning_objectives: [], further_readings: [], outcome_links: [], associated_places_ids: [], standards: [:name, descriptions: []], grade_range: [:start, :end], subjects: [], difficulty_level: [:student, :educator], skills: [:name, :level], context: [], tags: [])
+      params.require(:lesson).permit(:name, :topline, :summary, :teacher_notes, :assessment_criteria, :state, :collection_tag, :mastery_level_students, :mastery_level_teachers, other_users_emails: [], learning_objectives: [], further_readings: [], outcome_links: [], associated_places_ids: [], standards: [:name, descriptions: []], grade_range: [:start, :end], subjects: [], fabrication_tools: [], key_concepts: [], key_vocabularies: [], key_formulas: [], skills: [:name, :level], contexts: [], tags: [])
     end
 
     def step_params

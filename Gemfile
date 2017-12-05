@@ -42,6 +42,8 @@ gem 'video_thumb'
 gem 'kaminari'
 gem 'mini_magick'
 
+gem 'dropzonejs-rails'
+
 group :development do
   gem 'web-console'
   gem 'listen', '~> 3.0.5'

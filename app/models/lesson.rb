@@ -21,6 +21,7 @@
 #  key_concepts              :string           default([]), is an Array
 #  key_vocabularies          :string           default([]), is an Array
 #  key_formulas              :string           default([]), is an Array
+#  fabrication_tools         :string           default([]), is an Array
 #
 
 class Lesson < ApplicationRecord
@@ -37,6 +38,13 @@ class Lesson < ApplicationRecord
 
   before_create do # lessons initial state
     self.state = 0
+  end
+
+  before_save do
+    self.key_concepts = self.key_concepts.reject { |x| x.empty? } if self.key_concepts.present?
+    self.key_vocabularies = self.key_vocabularies.reject { |x| x.empty? } if self.key_vocabularies.present?
+    self.key_formulas =  self.key_formulas.reject { |x| x.empty? } if self.key_formulas.present?
+    self.fabrication_tools = self.fabrication_tools.reject { |x| x.empty? } if self.fabrication_tools.present?
   end
 
 
@@ -97,20 +105,17 @@ class Lesson < ApplicationRecord
   end
 
 
-  def setTeachingRange(start_range, end_range)
-    self.lesson_tags.where(taggable_type: "TeachingRange").map {|x| x.destroy} #sanitize
-    TeachingRange.setRangesForLesson(self.id, start_range, end_range)
-  end
-
-  def getTeachingRange
+  def teaching_range(start_range = nil, end_range = nil)
+    if start_range.present? & end_range.present?
+      self.lesson_tags.where(taggable_type: "TeachingRange").map {|x| x.destroy} #sanitize
+      TeachingRange.setRangesForLesson(self.id, start_range, end_range)
+    end
     range = self.lesson_tags.where(taggable_type: "TeachingRange").first
     {range_start: range.taggable.range_start, range_end: range.taggable.range_end} if range.present? && range.taggable.present?
   end
-
   def removeTeachingRange
     self.lesson_tags.where(taggable_type: "TeachingRange").destroy_all
   end
-
   def getTeachingRange_formatted
     range = {}
     if getTeachingRange.present?
@@ -124,6 +129,12 @@ class Lesson < ApplicationRecord
   def setSubjects(string_array)
     string_array.map {|n|
       s = Subject.find_or_create_by(name: n.downcase)
+      self.lesson_tags << LessonTag.new(taggable: s)
+    }
+  end
+  def setSubjects_id(id_array)
+    id_array.map {|n|
+      s = Subject.find(n)
       self.lesson_tags << LessonTag.new(taggable: s)
     }
   end
@@ -141,15 +152,15 @@ class Lesson < ApplicationRecord
   end
 
 
-  def setDifficultyLevel(obj_hash)
-    student = DifficultyLevel.find_or_create_by(metric: 0, level: obj_hash[:student].to_i) if obj_hash[:student].present?
-    educator = DifficultyLevel.find_or_create_by(metric: 1, level: obj_hash[:educator].to_i) if obj_hash[:educator].present?
+  def setMasteryLevel(obj_hash)
+    student = MasteryLevel.find_or_create_by(metric: 0, level: obj_hash[:student].to_i) if obj_hash[:student].present?
+    educator = MasteryLevel.find_or_create_by(metric: 1, level: obj_hash[:educator].to_i) if obj_hash[:educator].present?
     if student.present?
-      student_level = self.lesson_tags.where(taggable_type: "DifficultyLevel").first
+      student_level = self.lesson_tags.where(taggable_type: "MasteryLevel").first
       student_level.destroy if student_level.present?
     end
     if educator.present?
-      educator_level = self.lesson_tags.where(taggable_type: "DifficultyLevel").first
+      educator_level = self.lesson_tags.where(taggable_type: "MasteryLevel").first
       educator_level.destroy if educator_level.present?
     end
 
@@ -157,25 +168,25 @@ class Lesson < ApplicationRecord
     self.lesson_tags << LessonTag.new(taggable: educator)
   end
 
-  def getDifficultyLevel
-    self.lesson_tags.where(taggable_type: "DifficultyLevel").map {|x| y = x.taggable; {metric: y.metric, level: y.level}}
+  def masteryLevels
+    self.lesson_tags.where(taggable_type: "MasteryLevel").map {|x| y = x.taggable; {metric: y.metric, level: y.level}}
   end
 
-  def removeDifficultyLevels
-    self.lesson_tags.where(taggable_type: "DifficultyLevel").destroy_all
+  def removeMasteryLevels
+    self.lesson_tags.where(taggable_type: "MasteryLevel").destroy_all
   end
 
-  def student_difficulty(passed_value)
-    self.setDifficultyLevel({student: passed_value}) if passed_value
+  def student_mastery(passed_value = nil)
+    self.setMasteryLevel({student: passed_value}) if passed_value
     student = {}
-    self.getDifficultyLevel.map {|x| student = x if x[:metric] == "students"}
+    self.masteryLevels.map {|x| student = x if x[:metric] == "students"}
     return student
   end
 
-  def educator_difficulty(passed_value)
-    self.setDifficultyLevel({educator: passed_value}) if passed_value
+  def educator_mastery(passed_value = nil)
+    self.setMasteryLevel({educator: passed_value}) if passed_value
     educator = {}
-    self.getDifficultyLevel.map {|x| educator = x if x[:metric] == "educator"}
+    self.masteryLevels.map {|x| educator = x if x[:metric] == "educator"}
     return educator
   end
 
@@ -218,11 +229,17 @@ class Lesson < ApplicationRecord
       self.lesson_tags << LessonTag.new(taggable: c)
     }
   end
+  def setContext_id(id_array)
+    id_array.map {|n|
+      c = Context.find(n)
+      self.lesson_tags << LessonTag.new(taggable: c)
+    }
+  end
   def context
     self.lesson_tags.where(taggable_type: "Context").map {|x| y = x.taggable; y.name}
   end
   def context_ids
-    self.lesson_tags.where(taggable_type: "Subject").map {|x| y = x.taggable; y.id}
+    self.lesson_tags.where(taggable_type: "Context").map {|x| y = x.taggable; y.id}
   end
   def removeContext
     self.lesson_tags.where(taggable_type: "Context").destroy_all
@@ -256,6 +273,20 @@ class Lesson < ApplicationRecord
 
   def removeCollectionTags
     self.lesson_tags.where(taggable_type: "CollectionTag").destroy_all
+  end
+
+  # Generic Tags
+  def setTags(string_array)
+    string_array.map {|n|
+      gt = GenericTag.find_or_create_by(name: n.downcase)
+      self.lesson_tags << LessonTag.new(taggable: gt)
+    }
+  end
+  def tags
+    self.lesson_tags.where(taggable_type: "GenericTag").map {|x| y = x.taggable; y.name}
+  end
+  def removeTags
+    self.lesson_tags.where(taggable_type: "GenericTag").destroy_all
   end
 
 
@@ -424,7 +455,7 @@ class Lesson < ApplicationRecord
     }
   end
 
-  def totalDuration
+  def duration
     sum = 0
     self.steps.map {|x| sum += x.duration}
     sum
@@ -501,7 +532,7 @@ class Lesson < ApplicationRecord
         #     (self.standards.present? && self.standards["standards"].present? && self.standards["standards"].count > 0 && self.standards["standards"].first["name"].present? && self.standards["standards"].first["descriptions"].present?),
 
         subjects: self.getSubjects.present?,
-        difficulty_level: self.getDifficultyLevel.present? && self.getDifficultyLevel.count == 2,
+        mastery_level: self.masteryLevels.present? && self.masteryLevels.count == 2,
 
         steps: self.steps.present? && self.steps.first.summary.present? && self.steps.first.description.present?
     }

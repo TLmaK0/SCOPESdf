@@ -2,7 +2,7 @@ class SeedService
   class << self
     def essentials
       TeachingRange.seed
-      DifficultyLevel.seed
+      MasteryLevel.seed
       Subject.seed
       Involvement.seed
       Skill.seed
@@ -114,7 +114,7 @@ The Foundation’s programs focus on: education (.edu), organizational capacity 
               grade_range: {start: 0, end: 12},
               subjects:
                   ["technology", "science"],
-              difficulty_level:
+              mastery_level:
                   {student: "1", educator: "2"},
               skills: [
                   {name: "CNC", level: "4"},
@@ -357,7 +357,7 @@ the hook is where the MDF handle can be used to hoist the lantern in a horizonta
 
               grade_range: {start: 5, end: 9},
               subjects: ["technology", "science", "engineering", "arts"],
-              difficulty_level: {student: "1", educator: "2"},
+              mastery_level: {student: "1", educator: "2"},
               skills: [
                   {name: "CAD Design", level: "1"},
                   {name: "Electrical", level: "1"}
@@ -624,7 +624,7 @@ Place the push buttons in the rectangular slots on the playing field (created in
               grade_range: {start: 10, end: 13},
               subjects:
                   ["technology", "science", "engineering"],
-              difficulty_level:
+              mastery_level:
                   {student: "3", educator: "3"},
               skills: [
                   {name: "CAD Design", level: "2"},

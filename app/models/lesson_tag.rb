@@ -11,8 +11,6 @@
 #
 
 class LessonTag < ApplicationRecord
-  # TODO - think about adding assessment to here
-  # TODO - think about adding difficulty to here
 
   belongs_to :taggable, polymorphic: true
 
@@ -21,12 +19,5 @@ class LessonTag < ApplicationRecord
   validates :lesson_id, presence: true
 
   validates_uniqueness_of :taggable_id, :scope => [:taggable_type, :lesson_id]
-
-  # links to the following:
-  # User
-  # Organization
-  # TeachingRange
-  # Subject
-  # Difficulty Level
 
 end

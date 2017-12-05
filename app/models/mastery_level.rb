@@ -1,13 +1,13 @@
 # == Schema Information
 #
-# Table name: difficulty_levels
+# Table name: mastery_levels
 #
 #  id     :uuid             not null, primary key
 #  level  :integer          default("easy"), not null
 #  metric :integer          default("students"), not null
 #
 
-class DifficultyLevel < ApplicationRecord
+class MasteryLevel < ApplicationRecord
   has_many :lesson_tags, as: :taggable
 
   # NOVICE INTERMEDIATE ADVANCED

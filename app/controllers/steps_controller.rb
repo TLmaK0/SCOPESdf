@@ -62,7 +62,14 @@ class StepsController < ApplicationController
 
   def update
     respond_to do |format|
-      if @step_obj.update(step_params)
+      puts step_params.inspect
+
+      # # TODO - duration fails because no slider...
+      filtred_params = step_params
+      # filtred_params.delete(:duration)
+      # @step_obj.duration = 0
+
+      if @step_obj.update(filtred_params)
         format.html { redirect_to @step_obj, notice: 'Step was successfully updated.' }
         format.json { render :show, status: :ok, location: @step_obj }
       else

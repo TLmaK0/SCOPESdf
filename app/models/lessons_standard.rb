@@ -2,6 +2,7 @@
 #
 # Table name: lessons_standards
 #
+#  id          :uuid             not null, primary key
 #  lesson_id   :uuid             not null
 #  standard_id :uuid             not null
 #  description :string
